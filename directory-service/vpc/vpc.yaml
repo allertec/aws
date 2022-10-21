@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Setup VPC
+
+Parameters:
+  MainStackName:
+    Description: Name of Main Stack
+    Type: String
+
+  VpcCidr:
+    Description: CIDR for VPC
+    Type: String
+    Default: 10.5.0.0/16
+
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: main-vpc
+  
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.5.8.0/28 # Gives us 16 IPv4 IP Addresses
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${MainStackName}-public-subnet-1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: 10.5.16.0/28 # Gives us 16 IPv4 IP Addresses
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${MainStackName}-public-subnet-2
+  
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.5.120.0/28 # Gives us 16 IPv4 IP Addresses
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${MainStackName}-private-subnet-1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      CidrBlock: 10.5.128.0/28 # Gives us 16 IPv4 IP Addresses
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${MainStackName}-private-subnet-2
+  
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${MainStackName}-internet-gateway
+  
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  
+  PrivateSubnestRouteTable:
+    Type: AWSL::EC2::RouteTable
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${MainStackName}-private-subnet-route-table
+      VpcId: !Ref VPC
+  
+  PublicSubnestRouteTable:
+    Type: AWSL::EC2::RouteTable
+    Properties:
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${MainStackName}-public-subnet-route-table
+      VpcId: !Ref VPC
+
+Outputs:
+  MainVpc:
+    Description: Returns VPC Id
+    Value: !GetAtt VPC.VpcId
+

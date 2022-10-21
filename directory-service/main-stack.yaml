@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  This is very simple setup for AWS Directory Service. The directory is exposed via LB and Nginx Proxy.
+
+Parameters:
+  CfnS3Bucket:
+    Description: Name of S3 Bucket, where we store CloudFormation templates
+  VpcCidr:
+    Description: CIDR for VPC
+    Type: String
+    Default: 10.5.0.0/16
+
+Resources:
+
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${CfnS3Bucket}.s3.amazonaws.com/vpc/vpc.yaml
+      Parameters:
+        MainStackName: !Ref ${AWS::StackName}
+        VpcCidr: !Ref VpcCidr
