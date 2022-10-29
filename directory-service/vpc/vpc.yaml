@@ -101,4 +101,8 @@ Outputs:
   MainVpc:
     Description: Returns VPC Id
     Value: !GetAtt VPC.VpcId
+  
+  PrivateSubnets:
+    Description: List of Private Subnets
+    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ] ]
 

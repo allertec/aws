@@ -6,6 +6,18 @@ Description: >
 Parameters:
   CfnS3Bucket:
     Description: Name of S3 Bucket, where we store CloudFormation templates
+    Type: String
+  
+  DirectoryName:
+    Description: Name of the Directory
+    Type: String
+    Default: my-domain.com
+  
+  DirectoryPassword:
+    Description: Password to access the Directory Service
+    Type: String
+    NoEcho: true
+
   VpcCidr:
     Description: CIDR for VPC
     Type: String
@@ -20,3 +32,14 @@ Resources:
       Parameters:
         MainStackName: !Ref ${AWS::StackName}
         VpcCidr: !Ref VpcCidr
+  
+  DirectoryServices:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${CfnS3Bucket}.s3.amazonaws.com/directory-service/directory.yaml
+      Parameters:
+        DirectoryName: !Ref DirectoryName
+        DirectoryPassword: !Ref DirectoryPassword
+        MainStackName: !Ref ${AWS::StackName}
+        Subnets: !GetAtt VPC.Outputs.PrivateSubnets
+        VpcId: !GetAtt VPC.Outputs.MainVpc

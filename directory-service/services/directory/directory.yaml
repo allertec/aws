@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Sets up AWS Directory Service MicrosoftAD
+
+Parameters:
+  DirectoryName:
+    Description: Name of the Directory
+    Type: String
+
+  MainStackName:
+    Description: Name of Main Stack
+    Type: String
+  
+  DirectoryPassword:
+    Description: Password to access the Directory Service
+    Type: String
+    NoEcho: true
+  
+  Subnets:
+    Description: List of subnets
+    Type: List<AWS::EC2::Subnet::Id>
+  
+  VpcId:
+    Description: Id of Main VPC
+    Type: AWS::EC2::VPC::Id
+
+Resources:
+
+  Directory:
+    Type: AWS::DirectoryService::MicrosoftAD
+    Properties:
+      Name: !Ref DirectoryName
+      Password: !Ref DirectoryPassword
+      ShortName: !Select [0, !Split [ ".", !Ref DirectoryName ]]
+      VpcSettings:
+        SubnetIds:
+          - 
+        VpcId: !Ref VpcId
