@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Setup EC2 instance which acts as proxy server to access Directory Services
+
+Parameters:
+  AmiId:
+    Description: Amazon Linux Image Id
+    Type: AWS::EC2::Image::Id
+  
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t3.medium
+
+  MainStackName:
+    Description: Name of Main Stack
+    Type: String
+  
+  SubnetId:
+    Description: Subnet Id
+    Type: String
+
+Resources:
+  Ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupdDescription: Security Group for EC2 Proxy instance
+      GroupName: porxy-sg
+      SecurityIngress:
+      SecurityEgress:
+      Tags:
+        - Key: Name
+          Value: proxy-sg
+
+  Ec2ProxyInstanceRole:
+    Type: AWS::IAM::Role
+    Parameters:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Description: Role for EC2 Proxy Instance
+      Path: '/'
+      Tags:
+        - Key: Name
+          Value: proxy-instance-role
+  
+  ProxyInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref Ec2ProxyInstanceRole
+  
+  Ec2ProxyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs: !Ref AWS::Region
+      IamInstanceProfile: !Ref ProxyInstanceProfile
+      ImageId: !Ref AmiId
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !Ref Ec2SecurityGroup
+      SubnetId: !Ref SubnetId
+      Tags:
+        - Key: Name
+          Value: proxy-instance
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get install nginx
+    Metadata:
+      AWS::CloudFormation::Init:
+        01_config-nginx:
+          files:
+            '/etc/nginx/nginx.conf':
+              content: !Sub |
+                
+              mode: '000664'
+              owner: root
+              group: root

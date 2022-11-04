@@ -105,4 +105,8 @@ Outputs:
   PrivateSubnets:
     Description: List of Private Subnets
     Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ] ]
+  
+  PrivateSubnet1:
+    Description: Private Subnet 1 Id
+    Value: !Ref PrivateSubnet1
 
