@@ -18,7 +18,7 @@ Parameters:
     NoEcho: true
   
   Subnets:
-    Description: List of subnets
+    Description: List of subnets Id
     Type: List<AWS::EC2::Subnet::Id>
   
   VpcId:
@@ -34,6 +34,5 @@ Resources:
       Password: !Ref DirectoryPassword
       ShortName: !Select [0, !Split [ ".", !Ref DirectoryName ]]
       VpcSettings:
-        SubnetIds:
-          - 
+        SubnetIds: !Ref Subnets
         VpcId: !Ref VpcId
