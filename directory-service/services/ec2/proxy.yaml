@@ -8,6 +8,10 @@ Parameters:
     Description: Amazon Linux Image Id
     Type: AWS::EC2::Image::Id
   
+  Ec2ProxySecurityGroupId:
+    Description: Name of Proxy Security Group
+    Type: AWS::EC2::SecurityGroup::Id
+  
   InstanceType:
     Description: EC2 instance type
     Type: String
@@ -16,22 +20,12 @@ Parameters:
   MainStackName:
     Description: Name of Main Stack
     Type: String
-  
+
   SubnetId:
     Description: Subnet Id
     Type: String
 
 Resources:
-  Ec2SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupdDescription: Security Group for EC2 Proxy instance
-      GroupName: porxy-sg
-      SecurityIngress:
-      SecurityEgress:
-      Tags:
-        - Key: Name
-          Value: proxy-sg
 
   Ec2ProxyInstanceRole:
     Type: AWS::IAM::Role
@@ -68,7 +62,7 @@ Resources:
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: !Ref InstanceType
       SecurityGroupIds:
-        - !Ref Ec2SecurityGroup
+        - !Ref Ec2ProxySecurityGroupId
       SubnetId: !Ref SubnetId
       Tags:
         - Key: Name

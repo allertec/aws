@@ -7,7 +7,7 @@ Parameters:
   CfnS3Bucket:
     Description: Name of S3 Bucket, where we store CloudFormation templates
     Type: String
-  
+
   DirectoryName:
     Description: Name of the Directory
     Type: String
@@ -32,7 +32,23 @@ Resources:
       Parameters:
         MainStackName: !Ref ${AWS::StackName}
         VpcCidr: !Ref VpcCidr
-  
+
+  LoadBalancers:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${CfnS3Bucket}.s3.amazonaws.com/infrastructure/loadbalancers.yaml
+      Parameters:
+        MainStackName: !Ref ${AWS::StackName}
+        PrivateSubnets: !GetAtt VPC.Outputs.PrivateSubnets
+        PublicSubnets: !GetAtt VPC.Outputs.PublicSubnets
+
+  SecurityGroups:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://${CfnS3Bucket}.s3.amazonaws.com/infrastructure/security-groups.yaml
+      Parameters:
+        MainStackName: !Ref ${AWS::StackName}
+
   DirectoryServices:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -41,5 +57,6 @@ Resources:
         DirectoryName: !Ref DirectoryName
         DirectoryPassword: !Ref DirectoryPassword
         MainStackName: !Ref ${AWS::StackName}
+        Ec2ProxySecurityGroupId: !GetAtt SecurityGroups.Outputs.Ec2ProxySecurityGroupId
         Subnets: !GetAtt VPC.Outputs.PrivateSubnets
         VpcId: !GetAtt VPC.Outputs.MainVpc

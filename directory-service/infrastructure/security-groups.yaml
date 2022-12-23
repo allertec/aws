@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Cloudformation template for Security groups
+
+Parameters:
+  
+
+Resources:
+  ########################################################
+  ##############    Security Groups    ###################
+  ########################################################
+  Ec2ProxySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for EC2 Proxy instance
+      Tags:
+        - Key: Name
+          Value: proxy-sg
+
+  PublicLoadBalancerSecuritGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for PublicLoadBalancer
+      Tags:
+        - Key: Name
+          Value: public-loadbalancer-sg
+  
+  PrivateLoadBalancerSecuritGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for PrivateLoadBalancer
+      Tags:
+        - Key: Name
+          Value: private-loadbalancer-sg
+  
+  ########################################################
+  ###########    Security Groups Rules    ################
+  ########################################################
+
+  # ec2-proxy
+  Ec2ProxyPublicLoadBalancerInboundRule80:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow access from Public LoadBalancer on port 80
+      IpProtocol: tcp
+      SourceSecurityGroupId: !GetAtt PublicLoadBalancer.GroupId
+
+  # public loadbalancer ingress
+  PublicLoadBalancerInboundRuleHTTP:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: Allow access from internet on HTTP
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+  PublicLoadBalancerInboundRuleHTTPs:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: Allow access from internet on HTTPS
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+
+  # public loadbalancer egress
+  PublicLoadBalancerEc2ProxyOutboundRule80:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Allow access from LoadBalancer to Ec2Proxy
+      DestinationSecurityGroupId: !GetAtt Ec2ProxySecurityGroup.GroupId
+      GroupId: !GetAtt PublicLoadBalancer.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+
+  # private loadbalancer ingress
+  PrivateLoadBalancerEc2ProxyInboundRule80:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow access from PublicLoadBalancer
+      GroupId: !GetAtt PrivateLoadBalancerSecuritGroup.GroupId
+      SourceSecurityGroupId: !GetAtt PublicLoadBalancerSecuritGroup.Group
+      IpProtocol: tcp
+      FromPort: 8080
+      ToPort: 8080
+
+Outputs:
+  Ec2ProxySecurityGroupId:
+    Description: Id of Security Group
+    Value: !GetAtt Ec2ProxySecurityGroup.GroupId
+
+  PrivateLoadBalancerSecurityGroupId:
+    Description: Id of Security Group
+    Value: !GetAtt PrivateLoadBalancer.GroupId
+
+  PublicLoadbalancerSecurityGroupId:
+    Description: Id of Security Group
+    Value: !GetAtt PublicLoadBalancer.GroupId

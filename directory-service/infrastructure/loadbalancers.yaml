@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  Cloudformation template for LoadBalancers
+
+Parameters:
+  PrivateSubnets:
+    Description: List of Private Subnets
+    Type: List<AWS::EC2::Subnet::Id>
+
+  ProxyLoadBalancerSecurityGroup:
+    Description: Security Group Id
+    Type: String
+  
+  PublicSubnets:
+    Description: List of Public Subnets
+    Type: List<AWS::EC2::Subnet::Id>
+
+Resources:
+  ProxyPublicLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref ProxyLoadBalancerSecurityGroup
+      Subnets: !Ref PublicSubnets
+      Type: application
+  ProxyPrivateLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internal
+      SecurityGroups:
+        - !Ref ProxyLoadBalancerSecurityGroup
+      Subnets: !Ref PrivateSubnets
+      Type: application
+
+Outputs:
+  ProxyPublicLoadBalancerLoadBalancerName:
+    Description: LoadBalancer Name
+    Value: !GetAtt ProxyPublicLoadBalancer.LoadBalancerName
+  ProxyPrivateLoadBalancerLoadBalancerName:
+    Description: LoadBalancer Name
+    Value: !GetAtt ProxyPrivateLoadBalancer.LoadBalancerName
